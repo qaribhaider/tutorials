@@ -1,0 +1,123 @@
+services:
+  dt-jaeger:
+    container_name: dt-jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+      - "4317:4317"
+    environment:
+      - LOG_LEVEL=info
+      - JAEGER_DISABLED=true
+      - MEMORY_MAX_TRACES=5000
+      - SPAN_STORAGE_TYPE=memory
+    networks:
+      - dt-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:16686/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  dt-rabbitmq:
+    container_name: dt-rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - dt-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  dt-main-api:
+    build:
+      context: .
+      dockerfile: apps/nestjs-distributed-tracing/Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/nestjs-distributed-tracing:/app/apps/nestjs-distributed-tracing
+      - ./libs:/app/libs
+      - /app/node_modules
+    depends_on:
+      dt-rabbitmq:
+        condition: service_healthy
+      dt-jaeger:
+        condition: service_healthy
+    networks:
+      - dt-network
+
+  dt-http-service-one:
+    build:
+      context: .
+      dockerfile: apps/http-service-one/Dockerfile
+      target: development
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/http-service-one:/app/apps/http-service-one
+      - ./libs:/app/libs
+      - /app/node_modules
+    depends_on:
+      dt-rabbitmq:
+        condition: service_healthy
+      dt-jaeger:
+        condition: service_healthy
+    networks:
+      - dt-network
+
+  dt-the-service-two:
+    build:
+      context: .
+      dockerfile: apps/the-service-two/Dockerfile
+      target: development
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/the-service-two:/app/apps/the-service-two
+      - ./libs:/app/libs
+      - /app/node_modules
+    depends_on:
+      dt-rabbitmq:
+        condition: service_healthy
+      dt-jaeger:
+        condition: service_healthy
+    networks:
+      - dt-network
+
+  dt-the-service-three:
+    build:
+      context: .
+      dockerfile: apps/the-service-three/Dockerfile
+      target: development
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/the-service-three:/app/apps/the-service-three
+      - ./libs:/app/libs
+      - /app/node_modules
+    depends_on:
+      dt-rabbitmq:
+        condition: service_healthy
+      dt-jaeger:
+        condition: service_healthy
+    networks:
+      - dt-network
+
+networks:
+  dt-network:
+    driver: bridge

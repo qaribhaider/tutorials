@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/nestjs-distributed-tracing/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/nestjs-distributed-tracing/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/nestjs-distributed-tracing",
+  "projects": {
+    "helpers": {
+      "type": "library",
+      "root": "libs/helpers",
+      "entryFile": "index",
+      "sourceRoot": "libs/helpers/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/helpers/tsconfig.lib.json"
+      }
+    },
+    "nestjs-distributed-tracing": {
+      "type": "application",
+      "root": "apps/nestjs-distributed-tracing",
+      "entryFile": "main",
+      "sourceRoot": "apps/nestjs-distributed-tracing/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/nestjs-distributed-tracing/tsconfig.app.json"
+      }
+    },
+    "http-service-one": {
+      "type": "application",
+      "root": "apps/http-service-one",
+      "entryFile": "main",
+      "sourceRoot": "apps/http-service-one/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/http-service-one/tsconfig.app.json"
+      }
+    },
+    "the-service-three": {
+      "type": "application",
+      "root": "apps/the-service-three",
+      "entryFile": "main",
+      "sourceRoot": "apps/the-service-three/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/the-service-three/tsconfig.app.json"
+      }
+    },
+    "the-service-two": {
+      "type": "application",
+      "root": "apps/the-service-two",
+      "entryFile": "main",
+      "sourceRoot": "apps/the-service-two/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/the-service-two/tsconfig.app.json"
+      }
+    }
+  }
+}
